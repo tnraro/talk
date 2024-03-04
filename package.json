@@ -16,7 +16,7 @@
   },
   "scripts": {
     "dev": "bun --watch src/server.ts",
-    "build": "bun build src/client.ts --outdir dist --minify",
+    "build": "bun build --watch src/client.ts --outdir dist --minify",
     "start": "bun src/server.ts",
     "test": "bun test"
   }
