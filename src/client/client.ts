@@ -1,50 +1,29 @@
-import { edenTreaty } from "@elysiajs/eden"
-import type { App } from "../server"
-import stringWidth from "string-width";
+import { createChat } from "./chat";
 
 const $text = document.querySelector<HTMLElement>("#text")!;
 const $face = document.querySelector<HTMLElement>(".subtitle__face")!;
+const chat = createChat($text, $face);
+chat(".");
 
-const app = edenTreaty<App>(location.origin);
+const worker = new SharedWorker(new URL("./ws-worker.js", import.meta.url));
+worker.port.addEventListener("message", (event) => {
+  const { type, message } = event.data;
 
-const stream = app.stream.subscribe();
+  switch (type) {
+    case "message": {
+      console.log(message)
+      const value = message.slice(1).replaceAll(/(?:(\S{2,})\s*(?=\s*\1)){3,}|\s*\.$/g, "");
+      console.log(value);
 
-let id: any;
-
-const chat = (message: string) => {
-  let runes = [...message];
-  const delay = 50;
-  const html = runes.map((x, i) => `<span style="animation-delay: ${i * delay}ms">${x.replaceAll(/\s+/g, "&nbsp;")}</span>`).join("")
-
-  $text.innerHTML = html;
-  $face.classList.add("subtitle__face--talking");
-  $text.lastChild!.addEventListener("animationend", () => {
-    $face.classList.remove("subtitle__face--talking");
-  }, { once: true});
-  $text.style.display = "flex";
-
-  const width = stringWidth(message);
-
-  $text.style.fontSize = `${Math.min(3, 3 / (width / 19.2))}rem`;
-  console.log($text.style.fontSize);
-
-  clearTimeout(id);
-  id = setTimeout(() => {
-    $text.style.display = "none";
-  }, 3000);
-}
-
-stream.subscribe((message) => {
-  console.log(message)
-  const value = message.data.slice(1).replaceAll(/(?:(\S{2,})\s*(?=\s*\1)){3,}|\s*\.$/g, "");
-  console.log(value);
-
-  chat(value);
+      chat(value);
+      return;
+    }
+    case "open": {
+      return $face.classList.remove("subtitle__face--closed");
+    }
+    case "close": {
+      return $face.classList.add("subtitle__face--closed");
+    }
+  }
 });
-
-stream.on("open", (e) => {
-  $face.classList.remove("subtitle__face--closed");
-})
-stream.on("close", (e) => {
-  $face.classList.add("subtitle__face--closed");
-})
+worker.port.start();
