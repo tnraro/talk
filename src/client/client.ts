@@ -1,35 +1,18 @@
-import stringWidth from "string-width";
+import { createChat } from "./chat";
 
 const $text = document.querySelector<HTMLElement>("#text")!;
-const $face = document.querySelector(".subtitle__face")!;
+const $face = document.querySelector<HTMLElement>(".subtitle__face")!;
+
+const chat = createChat($text, $face);
 
 // @ts-expect-error use SpeechRecognition
 const SpeechRecognition = window.SpeechRecognition ?? window.webkitSpeechRecognition;
 
-let id: any;
-
-const chat = (message: string) => {
-  let runes = [...message];
-  const delay = 50;
-  const html = runes.map((x, i) => `<span style="animation-delay: ${i * delay}ms">${x.replaceAll(/\s+/g, "&nbsp;")}</span>`).join("")
-
-  $text.innerHTML = html;
-  $face.classList.add("subtitle__face--talking");
-  $text.lastChild!.addEventListener("animationend", () => {
-    $face.classList.remove("subtitle__face--talking");
-  }, { once: true });
-  $text.style.display = "flex";
-
-  const width = stringWidth(message);
-
-  $text.style.fontSize = `${Math.min(3, 3 / (width / 19.2))}rem`;
-  console.log($text.style.fontSize);
-
-  clearTimeout(id);
-  id = setTimeout(() => {
-    $text.style.display = "none";
-  }, 3000);
+if (SpeechRecognition == null) {
+  chat("SpeechRecognition is null");
+  throw new Error("53");
 }
+chat("loading...");
 
 const sr = new SpeechRecognition();
 sr.continuous = true;
