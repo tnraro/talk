@@ -1,15 +1,10 @@
 import { edenTreaty } from "@elysiajs/eden"
-import type { App } from "./server"
+import type { App } from "../server"
 import stringWidth from "string-width";
 
-// @ts-expect-error DOM
-const $text = document.querySelector("#text")
-// @ts-expect-error DOM
-const $subtitle = document.querySelector("#subtitle")
-// @ts-expect-error DOM
-const $face = document.querySelector(".subtitle__face");
+const $text = document.querySelector<HTMLElement>("#text")!;
+const $face = document.querySelector<HTMLElement>(".subtitle__face")!;
 
-// @ts-expect-error DOM
 const app = edenTreaty<App>(location.origin);
 
 const stream = app.stream.subscribe();
@@ -23,7 +18,7 @@ const chat = (message: string) => {
 
   $text.innerHTML = html;
   $face.classList.add("subtitle__face--talking");
-  $text.lastChild.addEventListener("animationend", () => {
+  $text.lastChild!.addEventListener("animationend", () => {
     $face.classList.remove("subtitle__face--talking");
   }, { once: true});
   $text.style.display = "flex";
